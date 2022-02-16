@@ -56,6 +56,18 @@ public class TrainService {
     private int bookedDeparture; // locationDetails -> gbttBookedDeparture
     private int actualDeparture; // locationDetails -> realtimeDeparture
 
+    public String getTo() {
+        return to;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    private String to;
+    private String from;
+    private boolean soonest;
+
     @Override
     public String toString(){
         String result = "Arrives(origin): "+bookedArrival+" -> ETA: "+actualArrival+
@@ -64,12 +76,19 @@ public class TrainService {
         return result;
     }
 
+    public String toListView(){
+        String result = from + " -> "+ to +"\nArrives(origin): "+bookedArrival+" -> ETA: "+actualArrival+
+                "\nDeparts(origin): "+bookedDeparture+" -> ETA: "+actualDeparture+
+                "\nPlatform: "+platform+ " Confirmed? "+platformConfirmed+"\n"+
+                "UID: " + serviceUid;
+        return result;
+    }
 
-
-    public TrainService(String from, String to, boolean soonest) throws InterruptedException {
+    public void reload() throws InterruptedException {
+        this.from = from;
+        this.to = to;
 
         final JSONObject[] nextTrainLocationInfo = {new JSONObject()};
-
         Thread thread = new Thread(() -> {
             try {
                 String userName = "rttapi_xSebo";
@@ -106,6 +125,12 @@ public class TrainService {
         }
         this.bookedDeparture = nextTrainLocationInfo[0].getInt("gbttBookedDeparture");
         this.actualDeparture = nextTrainLocationInfo[0].getInt("realtimeDeparture");
+    }
 
+    public TrainService(String from, String to, boolean soonest) throws InterruptedException {
+        this.from = from;
+        this.to = to;
+        this.soonest = soonest;
+        reload();
     }
 }

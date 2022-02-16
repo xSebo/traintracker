@@ -2,18 +2,27 @@ package com.example.applicationone;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.applicationone.trains.ServiceArray;
 import com.example.applicationone.trains.StationMatcher;
 import com.example.applicationone.trains.TrainService;
 
 import org.apache.http.auth.AuthenticationException;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
@@ -23,12 +32,58 @@ public class MainActivity extends AppCompatActivity {
     Button exampleButton;
     TextView trainText;
 
+    private ListView trains;
+    private ArrayAdapter<String> arrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); //R is shortcut for resources
+        setContentView(R.layout.activity_main2); //R is shortcut for resources
         exampleButton = findViewById(R.id.nwpcdfButton);
         trainText = findViewById(R.id.trainText);
+        TrainService train1;
+        TrainService train2;
+        try {
+            train1 = new TrainService("NWP","CDF", true);
+            train2 = new TrainService("CDF","NWP", true);
+
+            ServiceArray.addTrains(new TrainService[]{train1, train2});
+
+            trains = findViewById(R.id.favouriteTrainsList);
+
+            arrayAdapter = new ArrayAdapter<>(
+                    this,
+                    android.R.layout.simple_list_item_1,
+                    ServiceArray.getStrings()
+            ); // simple_list_item_1 is a premade list, use ctrl+enter for more
+
+            trains.setAdapter(arrayAdapter);
+
+            trains.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                //TODO (1) -> Implement custom adapter you can update instead of remaking a train.
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    String[] textArray = trains.getItemAtPosition(i).toString().split(" ");
+                    String uid = textArray[textArray.length-1];
+                    try {
+                        ServiceArray.findByUid(uid).get().reload();
+                        System.out.println(ServiceArray.getStrings());
+                    } catch (Exception e) {
+                        System.out.println("test");
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+        //Intent i = new Intent(this, MainActivity2.class);
+        //i.putExtra("instruction","hooray");
+        //startActivity(i);
+
     }
 
     public void loadData(View v) throws InterruptedException {
@@ -37,4 +92,5 @@ public class MainActivity extends AppCompatActivity {
         trainText.setText(train.toString());
         //StationMatcher.searchStation("cheltenham");
     }
+
 }
