@@ -1,32 +1,22 @@
 package com.example.applicationone;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
 
-import android.content.Intent;
-import android.os.AsyncTask;
+import android.app.ActionBar;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.applicationone.trains.ServiceArray;
-import com.example.applicationone.trains.StationMatcher;
 import com.example.applicationone.trains.TrainService;
-
-import org.apache.http.auth.AuthenticationException;
-
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import kong.unirest.Unirest;
-import kong.unirest.json.JSONArray;
-import kong.unirest.json.JSONObject;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
     Button exampleButton;
@@ -36,11 +26,57 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> arrayAdapter;
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.action_bar, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2); //R is shortcut for resources
-        exampleButton = findViewById(R.id.nwpcdfButton);
-        trainText = findViewById(R.id.trainText);
+
+        setContentView(R.layout.activity_main); //R is shortcut for resources
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.mainToolbar);
+        setSupportActionBar(myToolbar);
+
+        myToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Fragment selectedFragment = null;
+                switch(item.getItemId()) {
+                    case R.id.editFavourite:
+                        selectedFragment = new EditFavourites();
+                        myToolbar.setNavigationIcon(R.drawable.ic_arrow);
+                }
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, selectedFragment).commit();
+                return true;
+            }
+        });
+
+        BottomNavigationView bottomNav = findViewById(R.id.bottomNavBar);
+        bottomNav.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment selectedFragment = null;
+                switch (item.getItemId()) {
+                    case R.id.nav_favourite:
+                        selectedFragment = new FavouriteFragment();
+                        break;
+                    case R.id.nav_map:
+                        selectedFragment = new GmapFragment();
+                        break;
+                    default:
+                        selectedFragment = new FavouriteFragment();
+                        break;
+                }
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, selectedFragment).commit();
+                return true;
+            }
+        });
+
+
+        /*
         TrainService train1;
         TrainService train2;
         try {
@@ -79,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+         */
+
 
         //Intent i = new Intent(this, MainActivity2.class);
         //i.putExtra("instruction","hooray");
@@ -86,9 +124,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     public void loadData(View v) throws InterruptedException {
         String[] locations = v.getTag().toString().split(",");
-        TrainService train = new TrainService(locations[0],locations[1], true);
+        TrainService train = new TrainService(locations[0], locations[1], true);
         trainText.setText(train.toString());
         //StationMatcher.searchStation("cheltenham");
     }

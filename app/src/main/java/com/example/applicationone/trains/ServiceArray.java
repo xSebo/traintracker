@@ -1,11 +1,12 @@
 package com.example.applicationone.trains;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class ServiceArray {
-    public static ArrayList<TrainService> getActiveTrains() {
+    public static List<TrainService> getActiveTrains() {
         return activeTrains;
     }
 
@@ -17,7 +18,7 @@ public class ServiceArray {
         return strings;
     }
 
-    private static ArrayList<TrainService> activeTrains = new ArrayList<>();
+    private static List<TrainService> activeTrains = new ArrayList<>();
 
     public static void addTrain(TrainService train){
         activeTrains.add(train);
@@ -26,6 +27,21 @@ public class ServiceArray {
     public static void addTrains(TrainService[] trains){
         for(TrainService train : trains){
             activeTrains.add(train);
+        }
+    }
+
+    public static TrainService findByIndex(int i){
+        return activeTrains.get(i);
+    }
+
+    public static void clearTrains(){
+        System.out.println(activeTrains);
+        List<TrainService> tempTrains = new ArrayList();
+        for(TrainService t:activeTrains){
+            tempTrains.add(t);
+        }
+        for(TrainService t:tempTrains){
+            activeTrains.remove(t);
         }
     }
 

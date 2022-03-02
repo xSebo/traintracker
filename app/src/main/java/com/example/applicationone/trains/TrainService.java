@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
+import kong.unirest.json.JSONException;
 import kong.unirest.json.JSONObject;
 
 public class TrainService {
@@ -56,6 +57,8 @@ public class TrainService {
     private int bookedDeparture; // locationDetails -> gbttBookedDeparture
     private int actualDeparture; // locationDetails -> realtimeDeparture
 
+    private String finalDestination;
+
     public String getTo() {
         return to;
     }
@@ -69,46 +72,52 @@ public class TrainService {
     private boolean soonest;
 
     @Override
-    public String toString(){
-        String result = "Arrives(origin): "+bookedArrival+" -> ETA: "+actualArrival+
-                "\nDeparts(origin): "+bookedDeparture+" -> ETA: "+actualDeparture+
-                "\nPlatform: "+platform+ " Confirmed? "+platformConfirmed;
+    public String toString() {
+        String result = "Arrives(origin): " + bookedArrival + " -> ETA: " + actualArrival +
+                "\nDeparts(origin): " + bookedDeparture + " -> ETA: " + actualDeparture +
+                "\nPlatform: " + platform + " Confirmed? " + platformConfirmed;
         return result;
     }
 
-    public String toListView(){
-        String result = from + " -> "+ to +"\nArrives(origin): "+bookedArrival+" -> ETA: "+actualArrival+
-                "\nDeparts(origin): "+bookedDeparture+" -> ETA: "+actualDeparture+
-                "\nPlatform: "+platform+ " Confirmed? "+platformConfirmed+"\n"+
-                "UID: " + serviceUid;
+    public String toListView() {
+        String result = from + " -> " + to + "\nArrives(origin): " + bookedArrival + " -> ETA: " + actualArrival +
+                "\nDeparts(origin): " + bookedDeparture + " -> ETA: " + actualDeparture +
+                "\nPlatform: " + platform + " Confirmed? " + platformConfirmed + "\n" +
+                "Terminates at: " + finalDestination;
         return result;
     }
 
     public void reload() throws InterruptedException {
-        this.from = from;
-        this.to = to;
+        //System.out.println("Refreshing service with UID: " + this.serviceUid);
 
         final JSONObject[] nextTrainLocationInfo = {new JSONObject()};
         Thread thread = new Thread(() -> {
             try {
                 String userName = "rttapi_xSebo";
                 String password = "a377076c21bab1e0afc4922a76b0beda2925e0e5";
-                JSONArray o = Unirest.get("https://api.rtt.io/api/v1/json/search/"+from+"/to/"+to)
+                //System.out.println("https://api.rtt.io/api/v1/json/search/" + from + "/to/" + to);
+                JSONArray o = Unirest.get("https://api.rtt.io/api/v1/json/search/" + from + "/to/" + to)
                         .basicAuth(userName, password)
                         .asJson().getBody().getObject().getJSONArray("services");
                 JSONObject o2;
-                if(soonest) {
+                if (soonest) {
                     o2 = o.getJSONObject(0);
-                }else{
+                } else {
                     o2 = o.getJSONObject(0); //TODO -> Implement fetch-all/time-specific fetches.
                 }
-                //System.out.println(o2.toString());
                 nextTrainLocationInfo[0] = o2.getJSONObject("locationDetail");
                 this.serviceUid = o2.getString("serviceUid");
                 this.runDate = new SimpleDateFormat(o2.getString("runDate"));
                 this.platform = nextTrainLocationInfo[0].getInt("platform");
                 this.platformChanged = nextTrainLocationInfo[0].getBoolean("platformChanged");
                 this.platformConfirmed = nextTrainLocationInfo[0].getBoolean("platformConfirmed");
+
+                try {
+                    this.finalDestination = o2.getJSONArray("destination").getJSONObject(0).getString("description");
+                } catch (JSONException e) {
+                    this.finalDestination = nextTrainLocationInfo[0].getJSONArray("destination").getJSONObject(0).getString("description");
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -119,7 +128,7 @@ public class TrainService {
         try {
             this.bookedArrival = nextTrainLocationInfo[0].getInt("gbttBookedArrival");
             this.actualArrival = nextTrainLocationInfo[0].getInt("realtimeArrival");
-        }catch(Exception e){ //This occurs when a service starts at that station, since there is no arrival.
+        } catch (Exception e) { //This occurs when a service starts at that station, since there is no arrival.
             this.bookedArrival = 0;
             this.actualArrival = 0;
         }
@@ -132,5 +141,6 @@ public class TrainService {
         this.to = to;
         this.soonest = soonest;
         reload();
+        ServiceArray.addTrain(this);
     }
 }
