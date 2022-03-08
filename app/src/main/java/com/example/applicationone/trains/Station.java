@@ -9,11 +9,24 @@ public class Station {
         return code;
     }
 
-    private final String name;
-    private final String code;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    private String name;
+    private String code;
 
     public Station(String name, String code){
         this.name = name;
         this.code = code;
+    }
+
+    @Override
+    public String toString(){
+        return name + ", " + code;
     }
 }

@@ -17,37 +17,70 @@ import kong.unirest.json.JSONArray;
 
 public class StationMatcher {
 
-    private static List<String>[] cachedList = new List[]{new ArrayList<>()};
+    private static List<Station> cachedList = new ArrayList<>();
+
+    public static List<String> getStationNames() {
+        List<String> names = new ArrayList<>();
+        for (Station s : cachedList) {
+            names.add(s.getName());
+        }
+        System.out.println(names.toString());
+        return names;
+    }
+
+    public static List<Station> getStations(){
+        return cachedList;
+    }
 
     /**
      * A static search method to fetch a three digit station code list based off of a search term.
-     * @param query - Search term
+     *
+     * @param - Search term
      * @return List of Station objects
      * @throws InterruptedException
      */
-    public static List<Station> searchStation(String query) throws InterruptedException {
-
-        if(cachedList[0].size() == 0) {
+    public static void initialise() throws InterruptedException {
+        final List<String>[] tempList = new List[]{new ArrayList<>()};
+        if (cachedList.size() == 0) {
             Thread thread = new Thread(() -> {
-                cachedList[0] = Arrays.asList(Unirest.get("https://pastebin.com/raw/c9KmgWR7")
-                        .asString().getBody().split(","));
+                String response = Unirest.get("https://pastebin.com/raw/c9KmgWR7")
+                        .asString()
+                        .getBody();
+                tempList[0] = Arrays.asList(response.split(","));
             });
             thread.start();
             thread.join();
-        }
+            System.out.println(tempList[0].toString());
 
-        List<Station> searchResults = new ArrayList<>();
+            for (int i = 0; i < tempList[0].size(); i += 2) {
+                cachedList.add(new Station(tempList[0].get(i), tempList[0].get(i + 1)));
 
-        for(int i = 0; i< cachedList[0].size(); i+=2){
-            if(cachedList[0].get(i).toLowerCase().contains(query.toLowerCase())){
-                //System.out.println(stationList[0].get(i) + ", " + stationList[0].get(i+1));
-                Station station = new Station(cachedList[0].get(i),cachedList[0].get(i+1));
-
-                searchResults.add(station);
             }
-        }
 
-        return searchResults;
+        }
+        for(int i = 0; i < cachedList.size(); i++){
+            String tempString = cachedList.get(i).getName();
+            if(tempString.startsWith("\n\r")){
+                tempString = tempString.substring(2);
+                cachedList.get(i).setName(tempString);
+            }
+            if(tempString.startsWith("\r\n")){
+                tempString = tempString.substring(2);
+                cachedList.get(i).setName(tempString);
+            }
+            if(tempString.startsWith("\\r")){
+                tempString = tempString.substring(1);
+                cachedList.get(i).setName(tempString);
+
+            }
+            if(tempString.startsWith("\\n")){
+                tempString = tempString.substring(1);
+                cachedList.get(i).setName(tempString);
+            }
+
+        }
+        return;
+
 
     }
 }

@@ -57,6 +57,8 @@ public class TrainService {
     private int bookedDeparture; // locationDetails -> gbttBookedDeparture
     private int actualDeparture; // locationDetails -> realtimeDeparture
 
+    private boolean bus = false;
+
     private String finalDestination;
 
     public String getTo() {
@@ -105,13 +107,21 @@ public class TrainService {
                 } else {
                     o2 = o.getJSONObject(0); //TODO -> Implement fetch-all/time-specific fetches.
                 }
-                nextTrainLocationInfo[0] = o2.getJSONObject("locationDetail");
-                this.serviceUid = o2.getString("serviceUid");
-                this.runDate = new SimpleDateFormat(o2.getString("runDate"));
-                this.platform = nextTrainLocationInfo[0].getInt("platform");
-                this.platformChanged = nextTrainLocationInfo[0].getBoolean("platformChanged");
-                this.platformConfirmed = nextTrainLocationInfo[0].getBoolean("platformConfirmed");
-
+                if(o2.getString("serviceType").equalsIgnoreCase("bus")){
+                    this.serviceUid = o2.getString("serviceUid");
+                    this.runDate = new SimpleDateFormat(o2.getString("runDate"));
+                    this.platform = 0;
+                    this.platformChanged = false;
+                    this.platformConfirmed = true;
+                    this.bus = true;
+                }else {
+                    nextTrainLocationInfo[0] = o2.getJSONObject("locationDetail");
+                    this.serviceUid = o2.getString("serviceUid");
+                    this.runDate = new SimpleDateFormat(o2.getString("runDate"));
+                    this.platform = nextTrainLocationInfo[0].getInt("platform");
+                    this.platformChanged = nextTrainLocationInfo[0].getBoolean("platformChanged");
+                    this.platformConfirmed = nextTrainLocationInfo[0].getBoolean("platformConfirmed");
+                }
                 try {
                     this.finalDestination = o2.getJSONArray("destination").getJSONObject(0).getString("description");
                 } catch (JSONException e) {
@@ -133,7 +143,11 @@ public class TrainService {
             this.actualArrival = 0;
         }
         this.bookedDeparture = nextTrainLocationInfo[0].getInt("gbttBookedDeparture");
-        this.actualDeparture = nextTrainLocationInfo[0].getInt("realtimeDeparture");
+        try {
+            this.actualDeparture = nextTrainLocationInfo[0].getInt("realtimeDeparture");
+        }catch (Exception e){
+            this.actualDeparture = bookedDeparture;
+        }
     }
 
     public TrainService(String from, String to, boolean soonest) throws InterruptedException {

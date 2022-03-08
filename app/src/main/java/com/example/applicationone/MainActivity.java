@@ -1,9 +1,11 @@
 package com.example.applicationone;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 
 import android.app.ActionBar;
 import android.os.Bundle;
@@ -15,16 +17,11 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.applicationone.trains.StationMatcher;
 import com.example.applicationone.trains.TrainService;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class MainActivity extends AppCompatActivity {
-    Button exampleButton;
-    TextView trainText;
-
-    private ListView trains;
-    private ArrayAdapter<String> arrayAdapter;
-
+public class MainActivity extends AppCompatActivity implements LifecycleOwner {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.action_bar, menu);
@@ -34,6 +31,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+            StationMatcher.initialise(); //Runs once to init list
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         setContentView(R.layout.activity_main); //R is shortcut for resources
 
@@ -48,6 +51,13 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.editFavourite:
                         selectedFragment = new EditFavourites();
                         myToolbar.setNavigationIcon(R.drawable.ic_arrow);
+                        myToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                myToolbar.setNavigationIcon(null);
+                                getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, new FavouriteFragment()).commit();
+                            }
+                        });
                 }
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, selectedFragment).commit();
                 return true;
@@ -122,14 +132,6 @@ public class MainActivity extends AppCompatActivity {
         //i.putExtra("instruction","hooray");
         //startActivity(i);
 
-    }
-
-
-    public void loadData(View v) throws InterruptedException {
-        String[] locations = v.getTag().toString().split(",");
-        TrainService train = new TrainService(locations[0], locations[1], true);
-        trainText.setText(train.toString());
-        //StationMatcher.searchStation("cheltenham");
     }
 
 }

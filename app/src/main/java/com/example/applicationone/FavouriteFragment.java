@@ -80,11 +80,7 @@ public class FavouriteFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_favourite, container, false);
 
         try {
-            ServiceArray.clearTrains();
-
-            new TrainService("NWP","CDF", true);
-            new TrainService("CDF","NWP", true);
-            //train3 = new TrainService("SWA", "PAD", true);
+            ServiceArray.updateTrains();
 
             TrainServiceAdapter adapter = new TrainServiceAdapter();
             RecyclerView listView = view.findViewById(R.id.recyclerList);

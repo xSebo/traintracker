@@ -53,6 +53,16 @@ public class ServiceArray {
         }
     }
 
+    public static boolean alreadyExists(String[] fromTo){
+        for(TrainService t:activeTrains){
+            if(t.getFrom().equalsIgnoreCase(fromTo[0]) &&
+            t.getTo().equalsIgnoreCase(fromTo[1])){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void updateTrains() throws InterruptedException {
         ArrayList<Thread> threads = new ArrayList<>();
         for(TrainService t:activeTrains){

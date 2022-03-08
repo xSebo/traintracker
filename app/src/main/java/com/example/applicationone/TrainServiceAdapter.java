@@ -20,22 +20,6 @@ public class TrainServiceAdapter extends RecyclerView.Adapter<TrainServiceAdapte
         public ViewHolder(TextView v){
             super(v);
             textView = v;
-            //textView.setGravity(Gravity.CENTER);
-            /*
-            textView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final int pos = getAdapterPosition();
-                    System.out.println("Item " + pos + " clicked");
-                    try {
-                        ServiceArray.getActiveTrains().get(pos).reload();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-             */
         }
     }
 

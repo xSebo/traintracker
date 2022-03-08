@@ -2,63 +2,114 @@ package com.example.applicationone;
 
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.fragment.app.Fragment;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+
+import androidx.appcompat.widget.Toolbar;
+
+import com.example.applicationone.trains.ServiceArray;
+import com.example.applicationone.trains.Station;
+import com.example.applicationone.trains.StationMatcher;
+import com.example.applicationone.trains.TrainService;
+import com.google.android.material.textfield.TextInputLayout;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link EditFavourites#newInstance} factory method to
+ * <p>
  * create an instance of this fragment.
  */
 public class EditFavourites extends Fragment {
+    Button submitButton;
+    AutoCompleteTextView fromStation;
+    AutoCompleteTextView toStation;
+    Toolbar myToolbar;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    List<String> fromArray = new ArrayList<>();
+    List<String> toArray = new ArrayList<>();
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    String[] fromTo = new String[2];
 
     public EditFavourites() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment EditFavourites.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static EditFavourites newInstance(String param1, String param2) {
-        EditFavourites fragment = new EditFavourites();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_edit_favourites, container, false);
+        View view = inflater.inflate(R.layout.fragment_edit_favourites, container, false);
+
+        myToolbar = getActivity().findViewById(R.id.mainToolbar);
+
+        // This doesn't work? Why?
+        OnBackPressedCallback callBack = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, new FavouriteFragment()).commit();
+                myToolbar.setNavigationIcon(null);
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callBack);
+        // ------------------------
+
+        submitButton = view.findViewById(R.id.addStations);
+        fromStation = view.findViewById(R.id.fromStation);
+        toStation = view.findViewById(R.id.toStation);
+
+        TrainSearchAdapter fromAdapter = new TrainSearchAdapter(getContext(), R.layout.station_info, StationMatcher.getStations());
+        fromStation.setAdapter(fromAdapter);
+        fromStation.setThreshold(0);
+
+        TrainSearchAdapter toAdapter = new TrainSearchAdapter(getContext(), R.layout.station_info, StationMatcher.getStations());
+        toStation.setAdapter(toAdapter);
+        toStation.setThreshold(0);
+
+        fromStation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                fromStation.setText(StationMatcher.getStations().get(i).getCode());
+            }
+        });
+        toStation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                toStation.setText(StationMatcher.getStations().get(i).getCode());
+            }
+        });
+
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fromTo[0] = fromStation.getText().toString().trim().toUpperCase();
+                fromTo[1] = toStation.getText().toString().trim().toUpperCase();
+                try {
+                    if (!ServiceArray.alreadyExists(fromTo)) {
+                        new TrainService(fromTo[0], fromTo[1], true);
+                    }
+                    getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragmentContainer, new FavouriteFragment()).commit();
+                    myToolbar.setNavigationIcon(null);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        return view;
     }
 }

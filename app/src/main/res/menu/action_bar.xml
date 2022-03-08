@@ -5,8 +5,8 @@
     <!-- "Mark Favorite", should appear as action button if possible -->
     <item
         android:id="@+id/editFavourite"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:icon="@android:drawable/ic_input_add"
         android:title="Edit"
-        app:showAsAction="always"/>
+        app:showAsAction="always" />
 
 </menu>
