@@ -35,7 +35,7 @@ public class ServiceArray {
     }
 
     public static void clearTrains(){
-        System.out.println(activeTrains);
+        //System.out.println(activeTrains);
         List<TrainService> tempTrains = new ArrayList();
         for(TrainService t:activeTrains){
             tempTrains.add(t);
@@ -50,6 +50,14 @@ public class ServiceArray {
             if(t.getServiceUid().equalsIgnoreCase(train.getServiceUid())){
                 activeTrains.remove(t);
             }
+        }
+    }
+
+    public static void removeTrain(int index){
+        try{
+            activeTrains.remove(index);
+        }catch(Exception e){
+            System.out.println("Invalid index");
         }
     }
 

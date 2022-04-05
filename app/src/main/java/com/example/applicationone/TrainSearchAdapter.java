@@ -12,20 +12,37 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.example.applicationone.trains.Station;
+import com.example.applicationone.trains.StationMatcher;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class TrainSearchAdapter extends ArrayAdapter<Station> {
-    private List<Station> stationList;
-    private List<Station> originalList;
+    private List<Station> stationList = new ArrayList<>();
+    private List<Station> originalList = new ArrayList<>();
+    private HashMap<String, List<Station>> searchMap = new HashMap<>();
     private StationFilter filter;
 
     public TrainSearchAdapter(@NonNull Context context, int resource, @NonNull List<Station> stations) {
         super(context, resource, stations);
-
-        this.stationList = stations;
-        this.originalList = stations;
+        stationList.addAll(stations);
+        originalList.addAll(stations);
+        System.out.println(StationMatcher.getStations().size());
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
+        for(int i = 0; i<alphabet.length(); i++){
+            String c = String.valueOf(alphabet.charAt(i));
+            List<Station> tempList = new ArrayList<>();
+            for(Station s:originalList){
+                if(s.getName().toLowerCase().startsWith(c)){
+                    tempList.add(s);
+                }
+            }
+            searchMap.put(c, tempList);
+        }
     }
 
     @Override
@@ -62,7 +79,8 @@ public class TrainSearchAdapter extends ArrayAdapter<Station> {
         try {
             station = stationList.get(position);
         }catch(IndexOutOfBoundsException e){
-            station = stationList.get(0);
+            System.out.println("Doesnt exist?");
+            return convertView;
         }catch(NullPointerException e){
             System.out.println("Null pointer");
             return convertView;
@@ -82,13 +100,11 @@ public class TrainSearchAdapter extends ArrayAdapter<Station> {
                 charSequence = charSequence.toString().toLowerCase();
                 List<Station> filteredStations = new ArrayList<>();
 
-                for(Station s:originalList){
-                    String firstChar = String.valueOf(s.toString().toLowerCase().charAt(0));
-                    if(firstChar
-                            .equalsIgnoreCase(String.valueOf(charSequence.charAt(0)))){
-                        if(s.toString().toLowerCase().contains(charSequence)) {
-                            filteredStations.add(s);
-                        }
+                List<Station> searchList = searchMap.get(String.valueOf(charSequence.charAt(0)));
+
+                for(Station s:searchList){
+                    if(s.toString().toLowerCase().contains(charSequence)) {
+                        filteredStations.add(s);
                     }
                 }
                 result.count = filteredStations.size();

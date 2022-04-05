@@ -17,19 +17,29 @@ import kong.unirest.json.JSONArray;
 
 public class StationMatcher {
 
-    private static List<Station> cachedList = new ArrayList<>();
+    private static final List<Station> cachedList = new ArrayList<>();
+    private static final List<Station> cachedList2 = new ArrayList<>();
+
 
     public static List<String> getStationNames() {
         List<String> names = new ArrayList<>();
         for (Station s : cachedList) {
             names.add(s.getName());
         }
-        System.out.println(names.toString());
+        //System.out.println(names.toString());
         return names;
     }
 
     public static List<Station> getStations(){
+/*
+        List<Station> tempList = new ArrayList<>();
+        tempList.addAll(cachedList);
+        return tempList;
+*/
         return cachedList;
+    }
+    public static List<Station> getStations2(){
+        return cachedList2;
     }
 
     /**
@@ -40,8 +50,8 @@ public class StationMatcher {
      * @throws InterruptedException
      */
     public static void initialise() throws InterruptedException {
+        cachedList.clear();
         final List<String>[] tempList = new List[]{new ArrayList<>()};
-        if (cachedList.size() == 0) {
             Thread thread = new Thread(() -> {
                 String response = Unirest.get("https://pastebin.com/raw/c9KmgWR7")
                         .asString()
@@ -50,14 +60,14 @@ public class StationMatcher {
             });
             thread.start();
             thread.join();
-            System.out.println(tempList[0].toString());
+            //System.out.println(tempList[0].toString());
 
             for (int i = 0; i < tempList[0].size(); i += 2) {
                 cachedList.add(new Station(tempList[0].get(i), tempList[0].get(i + 1)));
 
             }
+            cachedList2.addAll(cachedList);
 
-        }
         for(int i = 0; i < cachedList.size(); i++){
             String tempString = cachedList.get(i).getName();
             if(tempString.startsWith("\n\r")){

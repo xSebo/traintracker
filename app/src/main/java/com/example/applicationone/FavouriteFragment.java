@@ -2,10 +2,12 @@ package com.example.applicationone;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -26,7 +28,7 @@ import com.example.applicationone.trains.TrainService;
  * Use the {@link FavouriteFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FavouriteFragment extends Fragment {
+public class FavouriteFragment extends Fragment implements TrainServiceAdapter.OnClickListener {
 
     SwipeRefreshLayout refresh;
 
@@ -79,53 +81,59 @@ public class FavouriteFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_favourite, container, false);
 
-        try {
-            ServiceArray.updateTrains();
+        TrainServiceAdapter adapter = new TrainServiceAdapter(ServiceArray.getActiveTrains(), this);
+        RecyclerView listView = view.findViewById(R.id.recyclerList);
+        listView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+        listView.setLayoutManager(layoutManager);
+        listView.setAdapter(adapter);
 
-            TrainServiceAdapter adapter = new TrainServiceAdapter();
-            RecyclerView listView = view.findViewById(R.id.recyclerList);
-            listView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
-            layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
-            listView.setLayoutManager(layoutManager);
-            listView.setAdapter(adapter);
+        ItemTouchHelper.SimpleCallback deleteItem = new ItemTouchHelper.SimpleCallback(1, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
 
-            refresh = view.findViewById(R.id.recyclerListRefresh);
-            refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    try {
-                        refresh.setRefreshing(true);
-                        ServiceArray.updateTrains();
-                        adapter.notifyDataSetChanged();
-                        refresh.setRefreshing(false);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                ServiceArray.removeTrain(viewHolder.getAdapterPosition());
+                adapter.notifyDataSetChanged();
+                getActivity()
+                        .getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer,
+                                new FavouriteFragment())
+                        .commit();
+            }
+        };
+        new ItemTouchHelper(deleteItem).attachToRecyclerView(listView);
+
+        refresh = view.findViewById(R.id.recyclerListRefresh);
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                try {
+                    refresh.setRefreshing(true);
+                    ServiceArray.updateTrains();
+                    adapter.notifyDataSetChanged();
+                    refresh.setRefreshing(false);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            });
+            }
+        });
 
-/*
-            trains.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                //TODO (1) -> Implement custom adapter you can update instead of remaking a train.
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    try {
-                        ServiceArray.findByIndex(i).reload();
-                        arrayAdapter = new ArrayAdapter(
-                                getActivity().getApplicationContext(), R.layout.custom_list, ServiceArray.getStrings()
-                        );
-                        trains.setAdapter(arrayAdapter);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
- */
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         return view;
+    }
+
+    @Override
+    public void onItemClick(int position) {
+        System.out.println(position);
+        getActivity()
+                .getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer,
+                        DetailsFragment.newInstance(String.valueOf(position)))
+                .commit();
     }
 }

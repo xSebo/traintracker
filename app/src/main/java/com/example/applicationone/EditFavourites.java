@@ -39,13 +39,9 @@ public class EditFavourites extends Fragment {
     AutoCompleteTextView toStation;
     Toolbar myToolbar;
 
-    List<String> fromArray = new ArrayList<>();
-    List<String> toArray = new ArrayList<>();
-
     String[] fromTo = new String[2];
 
     public EditFavourites() {
-        // Required empty public constructor
     }
 
     @Override
@@ -72,13 +68,20 @@ public class EditFavourites extends Fragment {
         fromStation = view.findViewById(R.id.fromStation);
         toStation = view.findViewById(R.id.toStation);
 
-        TrainSearchAdapter fromAdapter = new TrainSearchAdapter(getContext(), R.layout.station_info, StationMatcher.getStations());
-        fromStation.setAdapter(fromAdapter);
-        fromStation.setThreshold(0);
+        try {
+            StationMatcher.initialise();
+            System.out.println(StationMatcher.getStations().size());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        TrainSearchAdapter toAdapter = new TrainSearchAdapter(getContext(), R.layout.station_info, StationMatcher.getStations());
+        TrainSearchAdapter fromAdapter = new TrainSearchAdapter(view.getContext(), R.layout.station_info, StationMatcher.getStations());
+        fromStation.setAdapter(fromAdapter);
+        fromStation.setThreshold(1);
+
+        TrainSearchAdapter toAdapter = new TrainSearchAdapter(view.getContext(), R.layout.station_info, StationMatcher.getStations());
         toStation.setAdapter(toAdapter);
-        toStation.setThreshold(0);
+        toStation.setThreshold(1);
 
         fromStation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -88,11 +91,10 @@ public class EditFavourites extends Fragment {
         });
         toStation.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                toStation.setText(StationMatcher.getStations().get(i).getCode());
+            public void onItemClick(AdapterView<?> adapterView, View view, int idx, long l) {
+                toStation.setText(StationMatcher.getStations().get(idx).getCode());
             }
         });
-
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

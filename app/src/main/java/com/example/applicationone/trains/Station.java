@@ -1,6 +1,8 @@
 package com.example.applicationone.trains;
 
-public class Station {
+import java.util.Comparator;
+
+public class Station implements Comparable<Station> {
     public String getName() {
         return name;
     }
@@ -20,13 +22,23 @@ public class Station {
     private String name;
     private String code;
 
-    public Station(String name, String code){
+    public Station(String name, String code) {
         this.name = name;
         this.code = code;
     }
 
+    public Station(String name) {
+        this.name = name;
+        this.code = "TEST";
+    }
+
     @Override
-    public String toString(){
+    public String toString() {
         return name + ", " + code;
+    }
+
+    @Override
+    public int compareTo(Station station) {
+        return (name.compareTo(station.getName()));
     }
 }

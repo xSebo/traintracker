@@ -31,13 +31,6 @@ public class MainActivity extends AppCompatActivity implements LifecycleOwner {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        try {
-            StationMatcher.initialise(); //Runs once to init list
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         setContentView(R.layout.activity_main); //R is shortcut for resources
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.mainToolbar);
